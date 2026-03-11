@@ -77,40 +77,48 @@
       </div>
     </section>
 
-    <!-- ダッシュボード -->
-    <section class="stats-panel">
-      <h2>📊 進捗・正答率</h2>
-      <div class="stats-overall">
-        <div>総問題数: <span id="overall-total">0</span></div>
-        <div>回答済: <span id="overall-solved">0</span></div>
-        <div>正解数: <span id="overall-correct">0</span></div>
-        <div>正答率(%): <span id="overall-rate">0.0</span></div>
-      </div>
+    <!-- ダッシュボード開閉ボタン -->
+    <button id="toggle-stats" class="toggle-stats-button" type="button">
+      📊 進捗・正答率を開く
+    </button>
 
-      <div class="stats-bar stats-bar--overall">
-        <i id="overall-progress-bar"></i>
-      </div>
+    <!-- ダッシュボード全体をアコーディオンラッパーで囲む（初期は hidden） -->
+    <section id="stats-wrapper" class="stats-wrapper hidden">
+      <section class="stats-panel">
+        <h2>📊 進捗・正答率</h2>
 
-      <!-- ★6 難易度別統計 -->
-      <div class="stats-difficulty" id="stats-difficulty">
-        <div class="stats-diff-row" data-diff="basic">
-          <span class="diff-label">basic</span>
-          <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-          <div class="stats-bar"><i></i></div>
+        <div class="stats-overall">
+          <div>総問題数: <span id="overall-total">0</span></div>
+          <div>回答済: <span id="overall-solved">0</span></div>
+          <div>正解数: <span id="overall-correct">0</span></div>
+          <div>正答率(%): <span id="overall-rate">0.0</span></div>
         </div>
-        <div class="stats-diff-row" data-diff="standard">
-          <span class="diff-label">standard</span>
-          <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-          <div class="stats-bar"><i></i></div>
-        </div>
-        <div class="stats-diff-row" data-diff="hard">
-          <span class="diff-label">hard</span>
-          <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-          <div class="stats-bar"><i></i></div>
-        </div>
-      </div>
 
-      <div id="stats-domains" class="stats-domains"></div>
+        <div class="stats-bar stats-bar--overall">
+          <i id="overall-progress-bar"></i>
+        </div>
+
+        <!-- ★6 難易度別統計 -->
+        <div class="stats-difficulty" id="stats-difficulty">
+          <div class="stats-diff-row" data-diff="basic">
+            <span class="diff-label">basic</span>
+            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
+            <div class="stats-bar"><i></i></div>
+          </div>
+          <div class="stats-diff-row" data-diff="standard">
+            <span class="diff-label">standard</span>
+            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
+            <div class="stats-bar"><i></i></div>
+          </div>
+          <div class="stats-diff-row" data-diff="hard">
+            <span class="diff-label">hard</span>
+            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
+            <div class="stats-bar"><i></i></div>
+          </div>
+        </div>
+
+        <div id="stats-domains" class="stats-domains"></div>
+      </section>
     </section>
 
     <!-- 問題一覧 -->
