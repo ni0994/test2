@@ -56,6 +56,7 @@ html, body{
 
 a{ color: var(--primary); }
 
+/* 共通 hidden クラス（JS で toggle） */
 .hidden{ display:none !important; }
 
 :focus-visible{
@@ -398,7 +399,7 @@ a{ color: var(--primary); }
 }
 .question-card:hover{ box-shadow: var(--shadow-2); }
 
-/* ★ タイトル行（ブックマークボタン + ID） */
+/* タイトル行（ブックマークボタン + ID） */
 .question-title{
   display: flex;
   align-items: center;
@@ -408,7 +409,7 @@ a{ color: var(--primary); }
   margin-bottom:.35rem;
 }
 
-/* ★7 ブックマークボタン */
+/* ブックマークボタン */
 .bookmark-btn{
   flex: 0 0 auto;
   background: transparent;
@@ -446,7 +447,7 @@ a{ color: var(--primary); }
 .badge--diff{   border-color: color-mix(in oklab, var(--warn),    var(--border) 60%); }
 .badge--status{ border-color: color-mix(in oklab, var(--muted),   var(--border) 65%); }
 
-/* ★5 タグチップ */
+/* タグチップ */
 .chip{
   display:inline-flex;
   align-items:center;
