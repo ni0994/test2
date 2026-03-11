@@ -1,0 +1,34 @@
+{
+  "version": "1.1.0",
+  "exams": [
+    {
+      "id": "SG",
+      "label": "情報セキュリティマネジメント試験",
+      "default": true
+    }
+  ],
+  "domains": [
+    { "id": "sec_general",  "label": "情報セキュリティ全般" },
+    { "id": "sec_mgmt",     "label": "セキュリティ管理" },
+    { "id": "sec_measures", "label": "セキュリティ対策" },
+    { "id": "sec_law",      "label": "法令・規格" },
+    { "id": "it_basic",     "label": "IT基礎" }
+  ],
+  "questionFiles": [
+    "data/questions_sg_v1.json",
+    "data/questions_sg_basic_v1.json",
+    "data/questions_sg_practice_v1.json"
+  ],
+  "idPolicy": {
+    "format": "SEC-{EXAM}-{DOMAIN}-{NNN}",
+    "examples": [
+      "SEC-SG-LAW-001",
+      "SEC-SG-MGMT-012"
+    ],
+    "fields": {
+      "EXAM": "試験区分（SG, SCなど）",
+      "DOMAIN": "分野コード（GEN, MGMT, MEAS, LAW, ITBなど）",
+      "NNN": "3桁以上の連番"
+    }
+  }
+}

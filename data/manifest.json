@@ -1,0 +1,10 @@
+{
+  "name": "情報セキュリティ 学習アプリ",
+  "short_name": "SecStudy",
+  "description": "情報セキュリティマネジメント試験（SG）向け学習アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#004080",
+  "lang": "ja"
+}
