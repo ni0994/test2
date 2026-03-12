@@ -66,8 +66,8 @@ async function init() {
       if (el) el.textContent = `ランダム${shuffled.length}問`;
       _renderQuestions();
     },
-    onClearTag:      ()  => _clearTagFilter(),
-    onClearBookmarks: () => {
+    onClearTag:       ()  => _clearTagFilter(),
+    onClearBookmarks: ()  => {
       State.setBookmarks({});
       saveBookmarks(State.bookmarks);
       _renderQuestions();
@@ -190,7 +190,7 @@ function onChoose(questionId, displayIdx, cardEl) {
   const existing = State.answered[questionId];
   if (existing && existing.attempts > 0) return;
 
-  const origIdx   = displayIndexToOriginal(
+  const origIdx = displayIndexToOriginal(
     questionId, displayIdx, State.shuffleMap, State.questionById, _isShuffleEnabled()
   );
   const isCorrect = (origIdx === q.answer);
