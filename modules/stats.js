@@ -9,9 +9,13 @@ export function computeStats(questions, answered, meta) {
   const domainTotals  = {};
   const domainSolved  = {};
   const domainCorrect = {};
-  domainList.forEach(d => { domainTotals[d] = 0; domainSolved[d] = 0; domainCorrect[d] = 0; });
+  domainList.forEach(d => {
+    domainTotals[d]  = 0;
+    domainSolved[d]  = 0;
+    domainCorrect[d] = 0;
+  });
 
-  const diffList = ['basic', 'standard', 'hard'];
+  const diffList    = ['basic', 'standard', 'hard'];
   const diffTotals  = { basic: 0, standard: 0, hard: 0 };
   const diffSolved  = { basic: 0, standard: 0, hard: 0 };
   const diffCorrect = { basic: 0, standard: 0, hard: 0 };
@@ -54,40 +58,63 @@ export function computeStats(questions, answered, meta) {
 
 export function updateStatsDashboard(stats) {
   const o = stats.overall;
-  const rateOverall = o.solved > 0 ? ((o.correct / o.solved) * 100).toFixed(1) : '0.0';
+  const rateOverall = o.solved > 0
+    ? ((o.correct / o.solved) * 100).toFixed(1)
+    : '0.0';
 
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
   set('overall-total',   o.total);
   set('overall-solved',  o.solved);
   set('overall-correct', o.correct);
   set('overall-rate',    rateOverall);
 
-  const progressPct = o.total > 0 ? ((o.solved / o.total) * 100).toFixed(1) : '0.0';
-  const overallBar  = document.getElementById('overall-progress-bar');
+  const progressPct = o.total > 0
+    ? ((o.solved / o.total) * 100).toFixed(1)
+    : '0.0';
+  const overallBar = document.getElementById('overall-progress-bar');
   if (overallBar) overallBar.style.width = progressPct + '%';
 
   document.querySelectorAll('#stats-domains .stats-domain').forEach(el => {
     const domain = el.getAttribute('data-domain');
     const s = stats.perDomain[domain];
     if (!s) return;
-    el.querySelector('.total').textContent  = s.total;
-    el.querySelector('.solved').textContent = s.solved;
-    const rate = s.solved > 0 ? ((s.correct / s.solved) * 100).toFixed(1) : '0.0';
-    el.querySelector('.rate').textContent   = rate;
+    const totalEl  = el.querySelector('.total');
+    const solvedEl = el.querySelector('.solved');
+    const rateEl   = el.querySelector('.rate');
+    if (totalEl)  totalEl.textContent  = s.total;
+    if (solvedEl) solvedEl.textContent = s.solved;
+    const rate = s.solved > 0
+      ? ((s.correct / s.solved) * 100).toFixed(1)
+      : '0.0';
+    if (rateEl) rateEl.textContent = rate;
     const barInner = el.querySelector('.stats-bar > i');
-    if (barInner && s.total > 0) barInner.style.width = ((solved / s.total) * 100).toFixed(1) + '%';
+    if (barInner && s.total > 0) {
+      // ✅ 修正: solved → s.solved
+      barInner.style.width = ((s.solved / s.total) * 100).toFixed(1) + '%';
+    }
   });
 
   document.querySelectorAll('#stats-difficulty .stats-diff-row').forEach(el => {
     const diff = el.getAttribute('data-diff');
     const s = stats.perDiff[diff];
     if (!s) return;
-    el.querySelector('.diff-total').textContent  = s.total;
-    el.querySelector('.diff-solved').textContent = s.solved;
-    const rate = s.solved > 0 ? ((s.correct / s.solved) * 100).toFixed(1) : '0.0';
-    el.querySelector('.diff-rate').textContent   = rate;
+    const totalEl  = el.querySelector('.diff-total');
+    const solvedEl = el.querySelector('.diff-solved');
+    const rateEl   = el.querySelector('.diff-rate');
+    if (totalEl)  totalEl.textContent  = s.total;
+    if (solvedEl) solvedEl.textContent = s.solved;
+    const rate = s.solved > 0
+      ? ((s.correct / s.solved) * 100).toFixed(1)
+      : '0.0';
+    if (rateEl) rateEl.textContent = rate;
     const barInner = el.querySelector('.stats-bar > i');
-    if (barInner && s.total > 0) barInner.style.width = ((solved / s.total) * 100).toFixed(1) + '%';
+    if (barInner && s.total > 0) {
+      // ✅ 修正: solved → s.solved
+      barInner.style.width = ((s.solved / s.total) * 100).toFixed(1) + '%';
+    }
   });
 
   drawOverallPieChart(stats.overall);
@@ -97,21 +124,21 @@ export function updateStatsDashboard(stats) {
 // 全体進捗円グラフ（Chart.js による）
 // ==============================================
 export function drawOverallPieChart(overall) {
-  const ctx = document.getElementById('overall-progress-pie')?.getContext('2d');
-  if (!ctx) return;
+  const canvasEl = document.getElementById('overall-progress-pie');
+  if (!canvasEl) return;
+  // Chart.js が読み込まれていない場合はスキップ
+  if (typeof Chart === 'undefined') return;
 
-  const total = overall.total;
-  const solved = overall.solved;
+  const ctx      = canvasEl.getContext('2d');
+  const total    = overall.total;
+  const solved   = overall.solved;
   const remained = total - solved;
 
   const data = {
     labels: ['解答済み', '未回答'],
     datasets: [{
       data: [solved, remained],
-      backgroundColor: [
-        '#2E7D32',   // solved: 緑
-        '#E57373'    // remained: 赤っぽい色
-      ],
+      backgroundColor: ['#2E7D32', '#E57373'],
       borderWidth: 1,
       borderColor: '#ddd'
     }]
@@ -127,10 +154,10 @@ export function drawOverallPieChart(overall) {
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label(context) {
             const label = context.label || '';
             const value = context.parsed || 0;
-            const rate = ((value / total) * 100).toFixed(1);
+            const rate  = ((value / total) * 100).toFixed(1);
             return `${label}: ${value}問 (${rate}%)`;
           }
         }
@@ -138,13 +165,7 @@ export function drawOverallPieChart(overall) {
     }
   };
 
-  // 既存のチャートがあれば destroy
   const existing = Chart.getChart(ctx);
   if (existing) existing.destroy();
-
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: data,
-    options: options
-  });
+  new Chart(ctx, { type: 'doughnut', data, options });
 }
