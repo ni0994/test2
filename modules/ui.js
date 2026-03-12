@@ -182,7 +182,7 @@ export function setupDashboardToggle() {
 
   toggleBtn.addEventListener('click', () => {
     const isOpen = !wrapper.classList.contains('hidden');
-    wrapper.classList.toggle('hidden', !isOpen);
+    wrapper.classList.toggle('hidden', isOpen);  // ← 修正箇所
     toggleBtn.textContent = isOpen
       ? '📊 進捗・正答率を開く'
       : '📊 進捗・正答率を閉じる';
