@@ -171,3 +171,20 @@ export function buildDomainFilter(meta) {
     sel.appendChild(opt);
   });
 }
+
+// ==============================================
+// ダッシュボードの開閉（アコーディオン）
+// ==============================================
+export function setupDashboardToggle() {
+  const toggleBtn = document.getElementById('toggle-stats');
+  const wrapper   = document.getElementById('stats-wrapper');
+  if (!toggleBtn || !wrapper) return;
+
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = !wrapper.classList.contains('hidden');
+    wrapper.classList.toggle('hidden', !isOpen);
+    toggleBtn.textContent = isOpen
+      ? '📊 進捗・正答率を開く'
+      : '📊 進捗・正答率を閉じる';
+  });
+}
