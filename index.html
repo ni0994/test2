@@ -1,168 +1,229 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>情報セキュリティ 学習アプリ</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#004080" />
-</head>
-<body>
-  <header class="app-header">
-    <h1>情報セキュリティ 学習アプリ</h1>
-    <p class="app-subtitle">個人学習から社内研修までカバーする問題演習プラットフォーム</p>
-  </header>
+// ==============================================
+// エントリーポイント
+// ==============================================
+import * as State from './modules/state.js';
+import { loadMeta, loadQuestions, indexQuestions } from './modules/loader.js';
+import {
+  LS_ANSWERED_V2, LS_ANSWERED_V1, LS_MIGRATED_AT,
+  HISTORY_CAP,
+  saveAnswered, saveBookmarks,
+  loadBookmarks, loadAnsweredV2WithMigration, cleanupAnsweredNotInQuestions
+} from './modules/storage.js';
+import { buildShuffleMap, fisherYates, displayIndexToOriginal } from './modules/shuffle.js';
+import { initFuse, applyFilters, getFilteredByDomainPoolAndDifficulty } from './modules/search.js';
+import { renderQuestions, buildCard, showJudgeResult, showExplanation, applyAnsweredState } from './modules/render.js';
+import { computeStats, updateStatsDashboard } from './modules/stats.js';
+import {
+  setupSearchEvents, setupFilterEvents, setupKeyboardAnswerEvents,
+  setupFilterToggle, setupBackToTop, setupOfflineBanner, setupHiddenAdmin,
+  setupDomainStatsBlocks, buildDomainFilter, setupDashboardToggle
+} from './modules/ui.js';
 
-  <main class="app-main">
-
-    <!-- 検索 -->
-    <section class="search-panel">
-      <input id="search-input" type="text" placeholder="検索（問題文 / 選択肢 / 解説 / タグ）" />
-      <button id="search-button" type="button">検索</button>
-      <span id="search-count" class="search-count"></span>
-    </section>
-
-    <!-- フィルタ -->
-    <section class="mode-panel">
-      <!-- ★10 モバイル対応: アコーディオントグル -->
-      <button id="filter-toggle" class="filter-toggle" type="button" aria-expanded="true">
-        <span>🔽 フィルタ・設定</span>
-      </button>
-      <div id="filter-body" class="filter-body">
-        <div class="mode-row">
-          <label for="pool-select">出題対象:</label>
-          <select id="pool-select">
-            <option value="all">全て</option>
-            <option value="unanswered">未回答のみ</option>
-            <option value="wrong">過去に不正解あり</option>
-            <option value="never-correct">一度も正解したことがない</option>
-            <!-- ★7 ブックマーク -->
-            <option value="bookmarked">ブックマーク済み</option>
-          </select>
-
-          <label for="domain-select">分野:</label>
-          <select id="domain-select">
-            <option value="all">全分野</option>
-          </select>
-
-          <!-- ★3-2 low を削除し basic/standard/hard のみ -->
-          <label for="difficulty-select">難易度:</label>
-          <select id="difficulty-select">
-            <option value="all">全難易度</option>
-            <option value="basic">basic</option>
-            <option value="standard">standard</option>
-            <option value="hard">hard</option>
-          </select>
-        </div>
-
-        <div class="mode-row mode-row--actions">
-          <button id="random10" type="button">ランダム10問</button>
-
-          <label class="toggle-label">
-            <input id="shuffle-toggle" type="checkbox" checked />
-            選択肢シャッフル
-          </label>
-
-          <!-- ★7 ブックマーク全解除ボタン -->
-          <button id="btn-clear-bookmarks" type="button" class="btn-ghost">🔖 ブックマーク全解除</button>
-        </div>
-
-        <!-- ★5 アクティブタグ表示エリア -->
-        <div id="active-tag-area" class="active-tag-area hidden">
-          <span class="active-tag-label">タグ絞り込み中:</span>
-          <span id="active-tag-value" class="active-tag-chip"></span>
-          <button id="btn-clear-tag" type="button" class="btn-ghost">✕ 解除</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ダッシュボード開閉ボタン -->
-    <button id="toggle-stats" class="toggle-stats-button" type="button">
-      📊 進捗・正答率を開く
-    </button>
-
-    <!-- ダッシュボード全体をアコーディオンラッパーで囲む（初期は hidden） -->
-    <section id="stats-wrapper" class="stats-wrapper hidden">
-      <section class="stats-panel">
-        <h2>📊 進捗・正答率</h2>
-
-        <div class="stats-overall">
-          <div>総問題数: <span id="overall-total">0</span></div>
-          <div>回答済: <span id="overall-solved">0</span></div>
-          <div>正解数: <span id="overall-correct">0</span></div>
-          <div>正答率(%): <span id="overall-rate">0.0</span></div>
-        </div>
-
-        <div class="stats-bar stats-bar--overall">
-          <i id="overall-progress-bar"></i>
-        </div>
-
-        <!-- ★6 難易度別統計 -->
-        <div class="stats-difficulty" id="stats-difficulty">
-          <div class="stats-diff-row" data-diff="basic">
-            <span class="diff-label">basic</span>
-            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-            <div class="stats-bar"><i></i></div>
-          </div>
-          <div class="stats-diff-row" data-diff="standard">
-            <span class="diff-label">standard</span>
-            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-            <div class="stats-bar"><i></i></div>
-          </div>
-          <div class="stats-diff-row" data-diff="hard">
-            <span class="diff-label">hard</span>
-            <span class="diff-body">総: <b class="diff-total">0</b> 回答: <b class="diff-solved">0</b> 正答率: <b class="diff-rate">0.0</b>%</span>
-            <div class="stats-bar"><i></i></div>
-          </div>
-        </div>
-
-        <div id="stats-domains" class="stats-domains"></div>
-      </section>
-    </section>
-
-    <!-- 問題一覧 -->
-    <section>
-      <div id="questions-container"></div>
-    </section>
-
-  </main>
-
-  <!-- トップへ戻るボタン -->
-  <button id="back-to-top" class="back-to-top hidden" title="先頭へ戻る">▲</button>
-
-  <!-- オフラインバナー -->
-  <div id="offline-banner" class="offline-banner hidden">
-    オフラインモードで動作中です（キャッシュされた問題のみ利用可）。
-  </div>
-
-  <!-- 隠し管理パネル（ヘッダー5回クリックで表示） -->
-  <div id="admin-panel" class="admin-panel hidden">
-    <div class="admin-panel__inner">
-      <div class="admin-panel__title">🛠 管理メニュー</div>
-      <p class="admin-panel__hint">※ ヘッダーを5回タップして開いています</p>
-      <div class="admin-panel__actions">
-        <button id="btn-clear-cache" class="admin-btn admin-btn--warn">
-          🗑 キャッシュ削除
-        </button>
-        <button id="btn-reset-answers" class="admin-btn admin-btn--danger">
-          ⚠️ 回答履歴を全消去
-        </button>
-        <button id="btn-reset-answers-only" class="admin-btn admin-btn--danger">
-          ⚠️ 回答履歴のみ消去
-        </button>
-      </div>
-      <button id="btn-admin-close" class="admin-btn admin-btn--close">閉じる</button>
-    </div>
-  </div>
-
-  <script type="importmap">
-  {
-    "imports": {
-      "fuse.js": "https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.esm.js"
+async function init() {
+  try {
+    State.setMeta(await loadMeta('data/meta.json'));
+    State.setQuestions(await loadQuestions(
+      State.meta?.questionFiles || [
+        'data/questions_sg_v1.json',
+        'data/questions_sg_basic_v1.json',
+        'data/questions_sg_practice_v1.json'
+      ]
+    ));
+  } catch (e) {
+    console.error('[init] データ読み込み失敗:', e);
+    const container = document.getElementById('questions-container');
+    if (container) {
+      container.innerHTML = `<p style="color:red;">問題データの読み込みに失敗しました。<br>${e.message}</p>`;
     }
+    return;
   }
-  </script>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+
+  State.setQuestionById(indexQuestions(State.questions));
+  State.setAnswered(loadAnsweredV2WithMigration());
+  State.setBookmarks(loadBookmarks());
+  cleanupAnsweredNotInQuestions(State.questions, State.answered);
+  State.setShuffleMap(buildShuffleMap(State.questions));
+  State.setFuse(initFuse(State.questions));
+
+  buildDomainFilter(State.meta);
+  setupDomainStatsBlocks(State.meta);
+
+  State.setFilteredQuestions(State.questions.slice());
+  _renderQuestions();
+  _updateDashboard();
+
+  setupSearchEvents({ onSearch: (q) => _applyFilters(q) });
+  setupFilterEvents({
+    onFilter:         (q) => _applyFilters(q),
+    onRender:         ()  => _renderQuestions(),
+    getFilteredPool:  ()  => getFilteredByDomainPoolAndDifficulty(State.questions, State.answered, State.bookmarks),
+    onRandom: (shuffled) => {
+      State.setFilteredQuestions(shuffled);
+      const el = document.getElementById('search-count');
+      if (el) el.textContent = `ランダム${shuffled.length}問`;
+      _renderQuestions();
+    },
+    onClearTag:       ()  => _clearTagFilter(),
+    onClearBookmarks: ()  => {
+      State.setBookmarks({});
+      saveBookmarks(State.bookmarks);
+      _renderQuestions();
+    }
+  });
+  setupKeyboardAnswerEvents();
+  setupBackToTop();
+  setupOfflineBanner();
+  setupFilterToggle();
+  setupDashboardToggle();
+  setupHiddenAdmin({
+    onResetAll: () => {
+      localStorage.removeItem(LS_ANSWERED_V2);
+      localStorage.removeItem(LS_ANSWERED_V1);
+      localStorage.removeItem(LS_MIGRATED_AT);
+      State.setAnswered({});
+      State.setShuffleMap(buildShuffleMap(State.questions));
+      _renderQuestions();
+      _updateDashboard();
+    },
+    onResetAnswersOnly: () => {
+      localStorage.removeItem(LS_ANSWERED_V2);
+      localStorage.removeItem(LS_ANSWERED_V1);
+      localStorage.removeItem(LS_MIGRATED_AT);
+      State.setAnswered({});
+      State.setShuffleMap(buildShuffleMap(State.questions));
+      _renderQuestions();
+      _updateDashboard();
+    }
+  });
+}
+
+function _isShuffleEnabled() {
+  return document.getElementById('shuffle-toggle')?.checked ?? true;
+}
+
+function _getState() {
+  return {
+    answered:    State.answered,
+    bookmarks:   State.bookmarks,
+    shuffleMap:  State.shuffleMap,
+    questionById: State.questionById,
+    activeTag:   State.activeTag,
+    meta:        State.meta
+  };
+}
+
+function _getCallbacks() {
+  return {
+    onChoose:         onChoose,
+    onRetry:          onRetry,
+    onToggleBookmark: _toggleBookmark,
+    onSetTag:         _setTagFilter,
+    onClearTag:       _clearTagFilter,
+    isShuffleEnabled: _isShuffleEnabled
+  };
+}
+
+function _renderQuestions() {
+  const target = State.filteredQuestions ?? State.questions;
+  renderQuestions(target, _getState(), _getCallbacks());
+}
+
+function _updateDashboard() {
+  updateStatsDashboard(computeStats(State.questions, State.answered, State.meta));
+}
+
+function _applyFilters(query) {
+  const filtered = applyFilters({
+    query,
+    questions: State.questions,
+    fuse:      State.fuse,
+    answered:  State.answered,
+    bookmarks: State.bookmarks,
+    activeTag: State.activeTag
+  });
+  State.setFilteredQuestions(filtered);
+  const countEl = document.getElementById('search-count');
+  if (countEl) {
+    if (query)                                        countEl.textContent = `${filtered.length}件ヒット`;
+    else if (filtered.length !== State.questions.length) countEl.textContent = `${filtered.length}件表示`;
+    else                                              countEl.textContent = '';
+  }
+  _renderQuestions();
+}
+
+function _setTagFilter(tag) {
+  State.setActiveTag(tag);
+  const area  = document.getElementById('active-tag-area');
+  const valEl = document.getElementById('active-tag-value');
+  if (area)  area.classList.remove('hidden');
+  if (valEl) valEl.textContent = tag;
+  _applyFilters(document.getElementById('search-input')?.value.trim() ?? '');
+}
+
+function _clearTagFilter() {
+  State.setActiveTag(null);
+  document.getElementById('active-tag-area')?.classList.add('hidden');
+  _applyFilters(document.getElementById('search-input')?.value.trim() ?? '');
+}
+
+function _toggleBookmark(questionId) {
+  const bm = { ...State.bookmarks };
+  if (bm[questionId]) delete bm[questionId];
+  else bm[questionId] = true;
+  State.setBookmarks(bm);
+  saveBookmarks(State.bookmarks);
+}
+
+function onChoose(questionId, displayIdx, cardEl) {
+  const q = State.questionById.get(questionId);
+  if (!q) return;
+  const existing = State.answered[questionId];
+  if (existing && existing.attempts > 0) return;
+
+  const origIdx   = displayIndexToOriginal(questionId, displayIdx, State.shuffleMap, State.questionById, _isShuffleEnabled());
+  const isCorrect = (origIdx === q.answer);
+  const now       = new Date().toISOString();
+
+  cardEl.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.disabled = true;
+    const orig = Number(btn.dataset.origIndex);
+    if (orig === q.answer)                   btn.classList.add('is-correct');
+    else if (orig === origIdx && !isCorrect) btn.classList.add('is-wrong');
+  });
+  showJudgeResult(cardEl, isCorrect);
+  showExplanation(cardEl, q);
+  cardEl.querySelector('.retry-btn')?.classList.remove('hidden');
+
+  const rec = State.answered[questionId] || {
+    attempts: 0, correct: 0, lastCorrect: false, lastAnsweredAt: null, history: []
+  };
+  rec.attempts += 1;
+  if (isCorrect) rec.correct += 1;
+  rec.lastCorrect    = isCorrect;
+  rec.lastAnsweredAt = now;
+  if (!Array.isArray(rec.history)) rec.history = [];
+  rec.history.push({ at: now, correct: isCorrect });
+  if (rec.history.length > HISTORY_CAP) rec.history = rec.history.slice(-HISTORY_CAP);
+
+  State.answered[questionId] = rec;
+  saveAnswered(State.answered);
+
+  applyAnsweredState(q, cardEl, State.answered);
+  _updateDashboard();
+}
+
+function onRetry(questionId, cardEl) {
+  const q = State.questionById.get(questionId);
+  if (!q) return;
+  const newMap = { ...State.shuffleMap, [questionId]: fisherYates(q.choices.map((_, i) => i)) };
+  State.setShuffleMap(newMap);
+  const newAnswered = { ...State.answered };
+  delete newAnswered[questionId];
+  State.setAnswered(newAnswered);
+  saveAnswered(State.answered);
+  const newCard = buildCard(q, _getState(), _getCallbacks());
+  cardEl.replaceWith(newCard);
+  _updateDashboard();
+}
+
+document.addEventListener('DOMContentLoaded', init);
