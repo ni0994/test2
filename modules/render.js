@@ -36,10 +36,15 @@ export function buildCard(q, state, callbacks) {
   bmBtn.className = 'bookmark-btn' + (bookmarks[q.id] ? ' is-bookmarked' : '');
   bmBtn.title = 'ブックマーク';
   bmBtn.textContent = bookmarks[q.id] ? '🔖' : '📌';
+
   bmBtn.addEventListener('click', () => {
+    // ✅ 修正: onToggleBookmark を呼んだあと、現在の is-bookmarked 状態を
+    //    ボタン自身のクラスで判定し、反転させる（古い state 参照を使わない）
+    const wasBookmarked = bmBtn.classList.contains('is-bookmarked');
     onToggleBookmark(q.id);
-    bmBtn.classList.toggle('is-bookmarked', !!state.bookmarks[q.id]);
-    bmBtn.textContent = state.bookmarks[q.id] ? '🔖' : '📌';
+    const nowBookmarked = !wasBookmarked;
+    bmBtn.classList.toggle('is-bookmarked', nowBookmarked);
+    bmBtn.textContent = nowBookmarked ? '🔖' : '📌';
   });
 
   const titleText = document.createElement('span');
