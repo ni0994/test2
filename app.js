@@ -16,8 +16,7 @@ import { computeStats, updateStatsDashboard } from './modules/stats.js';
 import {
   setupSearchEvents, setupFilterEvents, setupKeyboardAnswerEvents,
   setupFilterToggle, setupBackToTop, setupOfflineBanner, setupHiddenAdmin,
-  setupDomainStatsBlocks, buildDomainFilter,      // ← ここに
-  setupDashboardToggle                            // ← これを追加
+  setupDomainStatsBlocks, buildDomainFilter, setupDashboardToggle
 } from './modules/ui.js';
 
 async function init() {
@@ -34,7 +33,8 @@ async function init() {
     console.error('[init] データ読み込み失敗:', e);
     const container = document.getElementById('questions-container');
     if (container) {
-      container.innerHTML = `<p style="color:red;">問題データの読み込みに失敗しました。<br>${e.message}</p>`;
+      container.innerHTML =
+        `<p style="color:red;">問題データの読み込みに失敗しました。<br>${e.message}</p>`;
     }
     return;
   }
@@ -55,27 +55,30 @@ async function init() {
 
   setupSearchEvents({ onSearch: (q) => _applyFilters(q) });
   setupFilterEvents({
-    onFilter:         (q) => _applyFilters(q),
-    onRender:         ()  => _renderQuestions(),
-    getFilteredPool:  ()  => getFilteredByDomainPoolAndDifficulty(State.questions, State.answered, State.bookmarks),
+    onFilter:        (q) => _applyFilters(q),
+    onRender:        ()  => _renderQuestions(),
+    getFilteredPool: ()  => getFilteredByDomainPoolAndDifficulty(
+      State.questions, State.answered, State.bookmarks
+    ),
     onRandom: (shuffled) => {
       State.setFilteredQuestions(shuffled);
       const el = document.getElementById('search-count');
       if (el) el.textContent = `ランダム${shuffled.length}問`;
       _renderQuestions();
     },
-    onClearTag:       ()  => _clearTagFilter(),
-    onClearBookmarks: ()  => {
+    onClearTag:      ()  => _clearTagFilter(),
+    onClearBookmarks: () => {
       State.setBookmarks({});
       saveBookmarks(State.bookmarks);
       _renderQuestions();
     }
   });
+
   setupKeyboardAnswerEvents();
   setupBackToTop();
   setupOfflineBanner();
   setupFilterToggle();
-  setupDashboardToggle();   // ← ここで開閉イベントを登録
+  setupDashboardToggle();
   setupHiddenAdmin({
     onResetAll: () => {
       localStorage.removeItem(LS_ANSWERED_V2);
@@ -143,12 +146,18 @@ function _applyFilters(query) {
     activeTag: State.activeTag
   });
   State.setFilteredQuestions(filtered);
+
   const countEl = document.getElementById('search-count');
   if (countEl) {
-    if (query)                                        countEl.textContent = `${filtered.length}件ヒット`;
-    else if (filtered.length !== State.questions.length) countEl.textContent = `${filtered.length}件表示`;
-    else                                              countEl.textContent = '';
+    if (query) {
+      countEl.textContent = `${filtered.length}件ヒット`;
+    } else if (filtered.length !== State.questions.length) {
+      countEl.textContent = `${filtered.length}件表示`;
+    } else {
+      countEl.textContent = '';
+    }
   }
+
   _renderQuestions();
 }
 
@@ -181,7 +190,9 @@ function onChoose(questionId, displayIdx, cardEl) {
   const existing = State.answered[questionId];
   if (existing && existing.attempts > 0) return;
 
-  const origIdx   = displayIndexToOriginal(questionId, displayIdx, State.shuffleMap, State.questionById, _isShuffleEnabled());
+  const origIdx   = displayIndexToOriginal(
+    questionId, displayIdx, State.shuffleMap, State.questionById, _isShuffleEnabled()
+  );
   const isCorrect = (origIdx === q.answer);
   const now       = new Date().toISOString();
 
@@ -191,6 +202,7 @@ function onChoose(questionId, displayIdx, cardEl) {
     if (orig === q.answer)                   btn.classList.add('is-correct');
     else if (orig === origIdx && !isCorrect) btn.classList.add('is-wrong');
   });
+
   showJudgeResult(cardEl, isCorrect);
   showExplanation(cardEl, q);
   cardEl.querySelector('.retry-btn')?.classList.remove('hidden');
@@ -198,13 +210,17 @@ function onChoose(questionId, displayIdx, cardEl) {
   const rec = State.answered[questionId] || {
     attempts: 0, correct: 0, lastCorrect: false, lastAnsweredAt: null, history: []
   };
+
   rec.attempts += 1;
   if (isCorrect) rec.correct += 1;
   rec.lastCorrect    = isCorrect;
   rec.lastAnsweredAt = now;
+
   if (!Array.isArray(rec.history)) rec.history = [];
   rec.history.push({ at: now, correct: isCorrect });
-  if (rec.history.length > HISTORY_CAP) rec.history = rec.history.slice(-HISTORY_CAP);
+  if (rec.history.length > HISTORY_CAP) {
+    rec.history = rec.history.slice(-HISTORY_CAP);
+  }
 
   State.answered[questionId] = rec;
   saveAnswered(State.answered);
@@ -216,12 +232,18 @@ function onChoose(questionId, displayIdx, cardEl) {
 function onRetry(questionId, cardEl) {
   const q = State.questionById.get(questionId);
   if (!q) return;
-  const newMap = { ...State.shuffleMap, [questionId]: fisherYates(q.choices.map((_, i) => i)) };
+
+  const newMap = {
+    ...State.shuffleMap,
+    [questionId]: fisherYates(q.choices.map((_, i) => i))
+  };
   State.setShuffleMap(newMap);
+
   const newAnswered = { ...State.answered };
   delete newAnswered[questionId];
   State.setAnswered(newAnswered);
   saveAnswered(State.answered);
+
   const newCard = buildCard(q, _getState(), _getCallbacks());
   cardEl.replaceWith(newCard);
   _updateDashboard();
