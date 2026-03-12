@@ -25,7 +25,6 @@
 
     <!-- フィルタ -->
     <section class="mode-panel">
-      <!-- モバイル対応: アコーディオントグル -->
       <button id="filter-toggle" class="filter-toggle" type="button" aria-expanded="true">
         <span>🔽 フィルタ・設定</span>
       </button>
@@ -65,7 +64,6 @@
           <button id="btn-clear-bookmarks" type="button" class="btn-ghost">🔖 ブックマーク全解除</button>
         </div>
 
-        <!-- アクティブタグ表示エリア -->
         <div id="active-tag-area" class="active-tag-area hidden">
           <span class="active-tag-label">タグ絞り込み中:</span>
           <span id="active-tag-value" class="active-tag-chip"></span>
@@ -79,20 +77,31 @@
       📊 進捗・正答率を開く
     </button>
 
-    <!-- ダッシュボード本体（アコーディオン） -->
+    <!-- ダッシュボード本体 -->
     <section id="stats-wrapper" class="stats-wrapper hidden">
       <section class="stats-panel">
         <h2>📊 進捗・正答率</h2>
 
-        <div class="stats-overall">
-          <div>総問題数: <span id="overall-total">0</span></div>
-          <div>回答済: <span id="overall-solved">0</span></div>
-          <div>正解数: <span id="overall-correct">0</span></div>
-          <div>正答率(%): <span id="overall-rate">0.0</span></div>
-        </div>
+        <!-- 全体サマリ + 円グラフ -->
+        <div class="stats-top">
+          <!-- 数値サマリ -->
+          <div class="stats-top__numbers">
+            <div class="stats-overall">
+              <div>総問題数: <span id="overall-total">0</span></div>
+              <div>回答済: <span id="overall-solved">0</span></div>
+              <div>正解数: <span id="overall-correct">0</span></div>
+              <div>正答率(%): <span id="overall-rate">0.0</span></div>
+            </div>
+            <!-- 全体プログレスバー -->
+            <div class="stats-bar stats-bar--overall">
+              <i id="overall-progress-bar"></i>
+            </div>
+          </div>
 
-        <div class="stats-bar stats-bar--overall">
-          <i id="overall-progress-bar"></i>
+          <!-- 円グラフ -->
+          <div class="stats-top__chart">
+            <canvas id="overall-progress-pie"></canvas>
+          </div>
         </div>
 
         <!-- 難易度別統計 -->
@@ -114,6 +123,7 @@
           </div>
         </div>
 
+        <!-- 分野別統計（JS で動的生成） -->
         <div id="stats-domains" class="stats-domains"></div>
       </section>
     </section>
@@ -152,6 +162,9 @@
       <button id="btn-admin-close" class="admin-btn admin-btn--close">閉じる</button>
     </div>
   </div>
+
+  <!-- Chart.js（円グラフ用） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 
   <script type="importmap">
   {
