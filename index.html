@@ -25,6 +25,7 @@
 
     <!-- フィルタ -->
     <section class="mode-panel">
+      <!-- モバイル対応: アコーディオントグル -->
       <button id="filter-toggle" class="filter-toggle" type="button" aria-expanded="true">
         <span>🔽 フィルタ・設定</span>
       </button>
@@ -64,6 +65,7 @@
           <button id="btn-clear-bookmarks" type="button" class="btn-ghost">🔖 ブックマーク全解除</button>
         </div>
 
+        <!-- アクティブタグ表示エリア -->
         <div id="active-tag-area" class="active-tag-area hidden">
           <span class="active-tag-label">タグ絞り込み中:</span>
           <span id="active-tag-value" class="active-tag-chip"></span>
@@ -72,10 +74,12 @@
       </div>
     </section>
 
+    <!-- ダッシュボード開閉ボタン -->
     <button id="toggle-stats" class="toggle-stats-button" type="button">
       📊 進捗・正答率を開く
     </button>
 
+    <!-- ダッシュボード本体（アコーディオン） -->
     <section id="stats-wrapper" class="stats-wrapper hidden">
       <section class="stats-panel">
         <h2>📊 進捗・正答率</h2>
@@ -91,6 +95,7 @@
           <i id="overall-progress-bar"></i>
         </div>
 
+        <!-- 難易度別統計 -->
         <div class="stats-difficulty" id="stats-difficulty">
           <div class="stats-diff-row" data-diff="basic">
             <span class="diff-label">basic</span>
@@ -113,18 +118,22 @@
       </section>
     </section>
 
+    <!-- 問題一覧 -->
     <section>
       <div id="questions-container"></div>
     </section>
 
   </main>
 
+  <!-- トップへ戻るボタン -->
   <button id="back-to-top" class="back-to-top hidden" title="先頭へ戻る">▲</button>
 
+  <!-- オフラインバナー -->
   <div id="offline-banner" class="offline-banner hidden">
     オフラインモードで動作中です（キャッシュされた問題のみ利用可）。
   </div>
 
+  <!-- 隠し管理パネル（ヘッダー5回クリックで表示） -->
   <div id="admin-panel" class="admin-panel hidden">
     <div class="admin-panel__inner">
       <div class="admin-panel__title">🛠 管理メニュー</div>
