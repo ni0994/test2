@@ -16,7 +16,8 @@ import { computeStats, updateStatsDashboard } from './modules/stats.js';
 import {
   setupSearchEvents, setupFilterEvents, setupKeyboardAnswerEvents,
   setupFilterToggle, setupBackToTop, setupOfflineBanner, setupHiddenAdmin,
-  setupDomainStatsBlocks, buildDomainFilter
+  setupDomainStatsBlocks, buildDomainFilter,      // ← ここに
+  setupDashboardToggle                            // ← これを追加
 } from './modules/ui.js';
 
 async function init() {
@@ -74,6 +75,7 @@ async function init() {
   setupBackToTop();
   setupOfflineBanner();
   setupFilterToggle();
+  setupDashboardToggle();   // ← ここで開閉イベントを登録
   setupHiddenAdmin({
     onResetAll: () => {
       localStorage.removeItem(LS_ANSWERED_V2);
